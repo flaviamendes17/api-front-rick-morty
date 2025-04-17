@@ -1,5 +1,5 @@
 .container {
-    background-image: url("/greenportal.jfif");
+    background-image: url(/greenportal.jfif);
     display: flex;
     background-size: cover;
     object-fit: cover;
@@ -8,7 +8,13 @@
     min-height: 100vh;
     padding: 2rem;
     background-attachment: fixed;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    align-items: flex-start;
 }
+
 
 .grid {
     display: flex;
@@ -19,3 +25,48 @@
     align-items: center;
     gap: 2rem;
 }
+
+.searchInput {
+        width: 100%;
+        max-width: 400px;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+
+.searchButton {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        background-color: #147d33cf;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .searchButton:hover {
+        background-color: #0f5a24;
+    }
+
+    .resetButton{
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        border: none;
+        background-color: #cc1a1ad4;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .resetButton:hover {
+        background-color: #a61010;
+    }
+
+    .title {
+        font-size: 2rem;
+        color: rgb(154, 229, 135);
+        text-align: center;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
