@@ -1,62 +1,134 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react";
-import axios from "axios";
-import CharacterCard from "../../components/CharacterCard";
 import styles from "./Home.module.css";
+import axios from "axios";
+import { useEffect, useState, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
+import CharacterCard from "../../components/CharacterCard";
+
 
 export default function Home() {
-    const [search, setSearch] = useState("");
-    const [notFound, setNotFound] = useState(false);
+    // ---------------------------------------------
+    // mostrar personagens 
+    // ---------------------------------------------
+
+    
     const [characters, setCharacters] = useState([]);
-    const [ page, setPage ] = useState(1);
-    const [ totalPages, setTotalPages ] = useState(1);
+    const [notFound, setNotFound] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const cacheRef = useRef(new Map());
+    const fetchCharacters = async (name = "", pageNumber = 1) => {
+        setLoading(true);
+        const cache = cacheRef.current;
+        const cacheKey = `${name}_${pageNumber}`;
+        const nextPageNumber = pageNumber + 1;
+        const nextCacheKey = `${name}_${nextPageNumber}`;
 
-    const fetchCharacters = async (name = "", page = 1) => {
-        setNotFound(false);
-        try {
-            const response = await axios.get(`https://rickandmortyapi.com/api/character/?name=${name}&page=${page}`);
-            setCharacters(response.data.results);
-            setTotalPages(response.data.info.pages); // Atualiza o total de páginas
-        } catch (error) {
-            if (error.response && error.response.status === 404) {
-                console.warn("Nenhum personagem encontrado para o nome fornecido.");
-                setNotFound(true);
-            } else {
-                console.error("Erro ao buscar personagens: ", error);
+        
+        const cleanCacheIfNeeded = () => {
+            while (cache.size >= 5) {
+                const firstKey = cache.keys().next().value;
+                cache.delete(firstKey);
+                console.log(` Removido do cache: ${firstKey} 🗑`);
             }
-            setCharacters([]);
+        };
+
+        console.log("\n============== inicio da busca ==============");
+        console.log(` Cache anterior: ${cache.size} páginas`);
+
+        let total = totalPages;
+
+        if (cache.has(cacheKey)) {
+            const cached = cache.get(cacheKey);
+            setCharacters(cached.results);
+            setTotalPages(cached.totalPages);
+            total = cached.totalPages;
+            setNotFound(false);
+            setLoading(false);
+            console.log(`Usando cache: ${cacheKey}`);
+        } else {
+            try {
+                const { data } = await axios.get(`https://rickandmortyapi.com/api/character/?page=${pageNumber}&name=${name}`);
+
+                cleanCacheIfNeeded();
+                cache.set(cacheKey, {
+                    results: data.results,
+                    totalPages: data.info.pages,
+                }); 
+
+                setCharacters(data.results);
+                setTotalPages(data.info.pages);
+                total = data.info.pages;
+                setNotFound(false);
+                console.log(` Salvo no cache: ${cacheKey}`);
+            } catch {
+                setCharacters([]);
+                setNotFound(true);
+            } finally {
+                setLoading(false);
+            }
         }
+        if (nextPageNumber <= total && !cache.has(nextCacheKey)) {
+            try {
+                const res = await axios.get(`https://rickandmortyapi.com/api/character/?page=${nextPageNumber}&name=${name}`);
+                cleanCacheIfNeeded();
+                cache.set(nextCacheKey, {
+                    results: res.data.results,
+                    totalPages: res.data.info.pages,
+                });
+                console.log(` Prefetch salvo: ${nextCacheKey}`);
+            } catch (err) {
+                console.log(`Prefetch falhou: ${nextCacheKey}`, err);
+            }
+        } else {
+            console.log("Prefetch ignorado: já no cache ou fora do limite");
+        }
+
+        console.log(` Cache final: ${cache.size} páginas`);
+        for (const [key, val] of cache.entries()) {
+            console.log(` ${key}: ${val.results.length} personagens`);
+        }
+        console.log("============== busca finalizada ==============\n");
     };
-
     useEffect(() => {
-        fetchCharacters(search.trim(), page);
-    }, [page]);
+        fetchCharacters();
+    }, []);
 
-    useEffect(() => {
-        fetchCharacters(search, page);
-    }, [search]);
+    // ---------------------------------------------
+    // fltrar o nome
+    // ---------------------------------------------
 
+    const [search, setSearch] = useState("");
     const handleSearch = () => {
-        const name = search.trim();
-        setPage(1); 
-        fetchCharacters(name,1);
+        setPage(1);
+        fetchCharacters(search, 1);
     };
-
     const handleReset = () => {
         setSearch("");
-        setPage(1); 
+        setPage(1);
         fetchCharacters("", 1);
-        toast.success("Filtro foi resetado com sucesso!", { position: "top-right" });
-    }
-
-
-    const handleCardClick = (name) => {
-        toast.info(`Você clicou no personagem: ${name}`, {
-        });
+        toast.success("Filtro foi resetado", { position: "top-left" });
     };
+
+    // ---------------------------------------------
+    // clicar card e toast 
+    // ---------------------------------------------
+    const handleCardClick = (char) => {
+        toast.info(`Você clicou em ${char.name} que está ${char.status}`);
+    };
+
+    // ---------------------------------------------
+    // páginas
+    // ---------------------------------------------
+
+    // Criar hook para armazenar a página atual e o total de páginas
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    
+    useEffect(() => {
+        fetchCharacters(search, page);
+    }, [page]);
 
     return (
         <div className={styles.container}>
