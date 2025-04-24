@@ -7,13 +7,11 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CharacterCard from "../../components/CharacterCard";
 
-
 export default function Home() {
     // ---------------------------------------------
     // mostrar personagens 
     // ---------------------------------------------
 
-    
     const [characters, setCharacters] = useState([]);
     const [notFound, setNotFound] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -25,7 +23,6 @@ export default function Home() {
         const nextPageNumber = pageNumber + 1;
         const nextCacheKey = `${name}_${nextPageNumber}`;
 
-        
         const cleanCacheIfNeeded = () => {
             while (cache.size >= 5) {
                 const firstKey = cache.keys().next().value;
@@ -134,33 +131,41 @@ export default function Home() {
         <div className={styles.container}>
             <ToastContainer position="top-right" autoClose={7500} theme="light" />
             
-            <h1 className={styles.title}>Rick and Morty Characters</h1>
-            
-            <input type="text" placeholder="Search for a character..." value={search} onChange={(e) => setSearch(e.target.value)}className={styles.searchInput}
-            />
-            <button onClick={handleSearch} className={styles.searchButton}>
-                Buscar
-            </button>
-            <button onClick={handleReset} className={styles.resetButton}>
-                Limpar
-            </button>
-            <div className={styles.navControls}>
-                <p className={styles.pageIndicator}>Página {page}</p> {/* Indicador de página */}
-                <button 
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))} 
-                    disabled={page === 1} 
-                    className={styles.buttonNav}
-                >
-                    Página anterior
-                </button>
-                <button 
-                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))} 
-                    disabled={page === totalPages} 
-                    className={styles.buttonNav}
-                >
-                    Próxima página
-                </button>
+            <div className={styles.header}>
+                <h1 className={styles.title}>Rick and Morty Characters</h1>
+
+                <div className={styles.searchContainer}>
+                    <input 
+                        type="text" 
+                        placeholder="Search for a character..." 
+                        value={search} 
+                        onChange={(e) => setSearch(e.target.value)} 
+                        className={styles.searchInput}
+                    />
+                    <button onClick={handleSearch} className={styles.searchButton}>Buscar</button>
+                    <button onClick={handleReset} className={styles.resetButton}>Limpar</button>
+                </div>
+
+                <p className={`${styles.searchButton}`}>Página {page}</p>
+
+                <div className={styles.navControls}>
+                    <button 
+                        onClick={() => setPage((p) => Math.max(p - 1, 1))} 
+                        disabled={page === 1} 
+                        className={styles.buttonNav}
+                    >
+                        Página anterior
+                    </button>
+                    <button 
+                        onClick={() => setPage((p) => Math.min(p + 1, totalPages))} 
+                        disabled={page === totalPages} 
+                        className={styles.buttonNav}
+                    >
+                        Próxima página
+                    </button>
+                </div>
             </div>
+
             <div className={styles.grid}>
                 {notFound ? (
                     <p>Personagem não encontrado.</p>
